@@ -7,7 +7,7 @@ use File::Spec::Functions qw(catfile);
 use Syntax::Highlight::Perl::Improved;
 use parent 'Pod::Text::Color';
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 use constant COLOR_TABLE => {
     head1  => 'bright_cyan',
@@ -121,6 +121,12 @@ sub cmd_i {
 
 sub cmd_l {
     my ($self, $attrs, $text) = @_;
+
+    # to fix the issues that are displayed on the double
+    if ($attrs->{type} eq 'url') {
+        $attrs->{type} = 'pod';
+    }
+
     $self->SUPER::cmd_l($attrs, $self->_colored($text, $self->_select_color('link')));
 }
 

@@ -29,7 +29,7 @@ no_index:
 provides:
   Pod::Text::Color::Delight:
     file: lib/Pod/Text/Color/Delight.pm
-    version: 0.03
+    version: 0.04
 requires:
   Pod::Text::Color: 2.07
   Syntax::Highlight::Perl::Improved: 0
@@ -40,4 +40,4 @@ resources:
   bugtracker: https://github.com/moznion/Pod-Text-Color-Delight/issues
   homepage: https://github.com/moznion/Pod-Text-Color-Delight
   repository: git://github.com/moznion/Pod-Text-Color-Delight
-version: 0.03
+version: 0.04

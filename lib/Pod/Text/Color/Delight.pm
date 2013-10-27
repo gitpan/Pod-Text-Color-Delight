@@ -7,7 +7,7 @@ use File::Spec::Functions qw(catfile);
 use Syntax::Highlight::Perl::Improved;
 use parent 'Pod::Text::Color';
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use constant COLOR_TABLE => {
     head1  => 'bright_cyan',
@@ -107,6 +107,7 @@ sub cmd_item_text {
 
     if ($self->{raw}) {
         $text = $self->{raw};
+        $text = '"' . $text . '"';
     }
     $self->SUPER::cmd_item_text($attrs, $text);
 

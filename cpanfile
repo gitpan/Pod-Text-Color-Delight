@@ -1,6 +1,6 @@
-requires 'Pod::Text::Color';
+requires 'Pod::Text::Color', '2.07';
 requires 'Syntax::Highlight::Perl::Improved';
-requires 'Term::ANSIColor';
+requires 'Term::ANSIColor', '4.02';
 requires 'parent';
 requires 'perl', '5.008005';
 
@@ -10,6 +10,7 @@ on configure => sub {
     requires 'Module::Build';
 };
 
-on 'test' => sub {
+on test => sub {
     requires 'Test::More', '0.98';
+    requires 'Capture::Tiny';
 };

@@ -2,12 +2,12 @@ package Pod::Text::Color::Delight;
 use 5.008005;
 use strict;
 use warnings;
-use Term::ANSIColor qw(colored);
+use Term::ANSIColor ();
 use File::Spec::Functions qw(catfile);
 use Syntax::Highlight::Perl::Improved;
 use parent 'Pod::Text::Color';
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 use constant COLOR_TABLE => {
     head1  => 'bright_cyan',
@@ -65,47 +65,62 @@ sub new {
 
 sub cmd_head1 {
     my ($self, $attrs, $text) = @_;
-    $self->SUPER::cmd_head1($attrs, colored($text, $self->_select_color('head1')));
+    $self->SUPER::cmd_head1($attrs, $self->_colored($text, $self->_select_color('head1')));
 }
 
 sub cmd_head2 {
     my ($self, $attrs, $text) = @_;
-    $self->SUPER::cmd_head2($attrs, colored($text, $self->_select_color('head2')));
+    $self->SUPER::cmd_head2($attrs, $self->_colored($text, $self->_select_color('head2')));
 }
 
 sub cmd_head3 {
     my ($self, $attrs, $text) = @_;
-    $self->SUPER::cmd_head3($attrs, colored($text, $self->_select_color('head3')));
+    $self->SUPER::cmd_head3($attrs, $self->_colored($text, $self->_select_color('head3')));
 }
 
 sub cmd_head4 {
     my ($self, $attrs, $text) = @_;
-    $self->SUPER::cmd_head4($attrs, colored($text, $self->_select_color('head4')));
+    $self->SUPER::cmd_head4($attrs, $self->_colored($text, $self->_select_color('head4')));
 }
 
 sub cmd_b {
     my ($self, $attrs, $text) = @_;
-    $self->SUPER::cmd_b($attrs, colored($text, $self->_select_color('bold')));
+    $self->SUPER::cmd_b($attrs, $self->_colored($text, $self->_select_color('bold')));
 }
 
 sub cmd_f {
     my ($self, $attrs, $text) = @_;
-    $self->SUPER::cmd_f($attrs, colored($text, $self->_select_color('file')));
+    $self->SUPER::cmd_f($attrs, $self->_colored($text, $self->_select_color('file')));
 }
 
 sub cmd_c {
     my ($self, $attrs, $text) = @_;
-    $self->SUPER::cmd_c($attrs, $self->_highlight_code($attrs, $text));
+
+    my $highlighted = $self->SUPER::cmd_c($attrs, $self->_highlight_code($attrs, $text));
+    $self->{raw} = $text;
+
+    return $highlighted;
+}
+
+sub cmd_item_text {
+    my ($self, $attrs, $text) = @_;
+
+    if ($self->{raw}) {
+        $text = $self->{raw};
+    }
+    $self->SUPER::cmd_item_text($attrs, $text);
+
+    undef $self->{raw};
 }
 
 sub cmd_i {
     my ($self, $attrs, $text) = @_;
-    $self->SUPER::cmd_i($attrs, colored($text, $self->_select_color('italic')));
+    $self->SUPER::cmd_i($attrs, $self->_colored($text, $self->_select_color('italic')));
 }
 
 sub cmd_l {
     my ($self, $attrs, $text) = @_;
-    $self->SUPER::cmd_l($attrs, colored($text, $self->_select_color('link')));
+    $self->SUPER::cmd_l($attrs, $self->_colored($text, $self->_select_color('link')));
 }
 
 sub cmd_verbatim {
@@ -119,6 +134,10 @@ sub _highlight_code {
     my $formatter = Syntax::Highlight::Perl::Improved->new;
 
     while (my ($type, $style) = each %{$self->_select_color('code')}) {
+        Term::ANSIColor::colored('dummy', $style);
+        if ($@) {
+            $style = 'reset';
+        }
         $formatter->set_format($type, [Term::ANSIColor::color($style), Term::ANSIColor::color('reset')]);
     }
 
@@ -129,6 +148,19 @@ sub _select_color {
     my ($self, $element) = @_;
 
     return $self->{color_table}->{$element} || COLOR_TABLE->{$element} || 'reset';
+}
+
+sub _colored {
+    my ($self, $text, $color) = @_;
+
+    my $colored_text = '';
+    eval { $colored_text = Term::ANSIColor::colored($text, $color) };
+
+    if ($@) {
+        $colored_text = Term::ANSIColor::colored($text, 'reset');
+    }
+
+    return $colored_text;
 }
 1;
 __END__
@@ -165,6 +197,8 @@ You can configure colors as you like!
 What is necessary is just to put a F<.pod_text_color_delight> (this is configuration file) on your home directory.
 
 The example of a configuration file should look at <a href="https://github.com/moznion/Pod-Text-Color-Delight/blob/master/sample/configurations">samples</a>.
+
+If you specify not supported color or not specify color to element, the element will not be highlighted.
 
 =end html
 

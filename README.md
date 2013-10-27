@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/moznion/Pod-Text-Color-Delight.png?branch=master)](https://travis-ci.org/moznion/Pod-Text-Color-Delight)
 # NAME
 
 Pod::Text::Color::Delight - Delight Light Highlight the POD
@@ -26,6 +27,8 @@ You can configure colors as you like!
 What is necessary is just to put a `.pod\_text\_color\_delight` (this is configuration file) on your home directory.
 
 The example of a configuration file should look at <a href="https://github.com/moznion/Pod-Text-Color-Delight/blob/master/sample/configurations">samples</a>.
+
+If you specify not supported color or not specify color to element, the element will not be highlighted.
 
 
 

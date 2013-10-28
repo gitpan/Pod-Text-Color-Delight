@@ -7,7 +7,7 @@ use File::Spec::Functions qw(catfile);
 use Syntax::Highlight::Perl::Improved;
 use parent 'Pod::Text::Color';
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 use constant COLOR_TABLE => {
     head1  => 'bright_cyan',
@@ -85,11 +85,23 @@ sub cmd_head4 {
 
 sub cmd_b {
     my ($self, $attrs, $text) = @_;
+
+    if ($self->{PENDING}->[2]) {
+        return "B<$text>";
+    }
+
+    $text = $self->_highlight_raw_format($attrs, $text);
     $self->SUPER::cmd_b($attrs, $self->_colored($text, $self->_select_color('bold')));
 }
 
 sub cmd_f {
     my ($self, $attrs, $text) = @_;
+
+    if ($self->{PENDING}->[2]) {
+        return "F<$text>";
+    }
+
+    $text = $self->_highlight_raw_format($attrs, $text);
     $self->SUPER::cmd_f($attrs, $self->_colored($text, $self->_select_color('file')));
 }
 
@@ -98,6 +110,26 @@ sub cmd_c {
 
     my $highlighted = $self->SUPER::cmd_c($attrs, $self->_highlight_code($attrs, $text));
     $self->{raw} = $text;
+
+    # XXX for file format
+    $highlighted =~ s/\e\[37mF\e\[0m\e\[37m<\e\[0m(.*?)\e\[37m>\e\[0m
+                     /$self->cmd_f(Term::ANSIColor::colorstrip($attrs, $1))
+                     /gex;
+
+    # XXX for italic format
+    $highlighted =~ s/\e\[37mI\e\[0m\e\[37m<\e\[0m(.*?)\e\[37m>\e\[0m
+                     /$self->cmd_i(Term::ANSIColor::colorstrip($attrs, $1))
+                     /gex;
+
+    # XXX for bold format
+    $highlighted =~ s/\e\[37mB\e\[0m\e\[37m<\e\[0m(.*?)\e\[37m>\e\[0m
+                     /$self->cmd_b(Term::ANSIColor::colorstrip($attrs, $1))
+                     /gex;
+
+    # XXX for link format
+    $highlighted =~ s/\e\[37mL\e\[0m\e\[37m<\e\[0m(.*?)\e\[37m>\e\[0m
+                     /$self->cmd_l(Term::ANSIColor::colorstrip({type => 'pod'}, $1))
+                     /gex;
 
     return $highlighted;
 }
@@ -116,6 +148,12 @@ sub cmd_item_text {
 
 sub cmd_i {
     my ($self, $attrs, $text) = @_;
+
+    if ($self->{PENDING}->[2]) {
+        return "I<$text>";
+    }
+
+    $text = $self->_highlight_raw_format($attrs, $text);
     $self->SUPER::cmd_i($attrs, $self->_colored($text, $self->_select_color('italic')));
 }
 
@@ -127,6 +165,11 @@ sub cmd_l {
         $attrs->{type} = 'pod';
     }
 
+    if ($self->{PENDING}->[2]) {
+        return "L<$text>";
+    }
+
+    $text = $self->_highlight_raw_format($attrs, $text);
     $self->SUPER::cmd_l($attrs, $self->_colored($text, $self->_select_color('link')));
 }
 
@@ -168,6 +211,32 @@ sub _colored {
     }
 
     return $colored_text;
+}
+
+sub _highlight_raw_format {
+    my ($self, $attrs, $text) = @_;
+
+    # XXX for file format
+    $text =~ s/F<(.*?)>
+              /$self->cmd_f(Term::ANSIColor::colorstrip($attrs, $1))
+              /ex;
+
+    # XXX for italic format
+    $text =~ s/I<(.*?)>
+              /$self->cmd_i(Term::ANSIColor::colorstrip($attrs, $1))
+              /ex;
+
+    # XXX for bold format
+    $text =~ s/B<(.*?)>
+              /$self->cmd_b(Term::ANSIColor::colorstrip($attrs, $1))
+              /ex;
+
+    # XXX for link format
+    $text =~ s/L<(.*?)>
+              /$self->cmd_l(Term::ANSIColor::colorstrip({type => 'pod'}, $1))
+              /ex;
+
+    return $text;
 }
 1;
 __END__

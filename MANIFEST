@@ -17,9 +17,11 @@ t/04_code.t
 t/10_item_and_code.t
 t/11_link_url.t
 t/12_nested_formatting.t
+t/13_item_after_code.t
 t/resources/code.pod
 t/resources/decorations.pod
 t/resources/heads.pod
+t/resources/item_after_code.pod
 t/resources/item_and_code.pod
 t/resources/link_url.pod
 t/resources/nested_formatting.pod

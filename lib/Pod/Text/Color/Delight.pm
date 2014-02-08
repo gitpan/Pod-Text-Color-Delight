@@ -7,7 +7,7 @@ use File::Spec::Functions qw(catfile);
 use Syntax::Highlight::Perl::Improved;
 use parent 'Pod::Text::Color';
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 use constant COLOR_TABLE => {
     head1  => 'bright_cyan',
@@ -109,7 +109,7 @@ sub cmd_c {
     my ($self, $attrs, $text) = @_;
 
     my $highlighted = $self->SUPER::cmd_c($attrs, $self->_highlight_code($attrs, $text));
-    $self->{raw} = $text;
+    $self->{raw} = $text; # for C<...> that is in `=item`
 
     # XXX for file format
     $highlighted =~ s/\e\[37mF\e\[0m\e\[37m<\e\[0m(.*?)\e\[37m>\e\[0m
@@ -137,7 +137,10 @@ sub cmd_c {
 sub cmd_item_text {
     my ($self, $attrs, $text) = @_;
 
-    if ($self->{raw}) {
+    my $raw = $self->{raw};
+    my ($_text) = Term::ANSIColor::colorstrip($text) =~ m/^"(.*)"$/;
+
+    if ($raw && $_text && $_text eq $raw) {
         $text = $self->{raw};
         $text = '"' . $text . '"';
     }
@@ -264,6 +267,17 @@ Additionally, this module also highlights Perl code (e.g. SYNOPSIS).
 And you can configure the color settings for each elements as you like. Please look L<"CONFIGURATION AND ENVIRONMENT">.
 
 Basic usage is the same as L<Pod::Text::Color>. So please refer it.
+
+=head1 BASIC USAGE
+
+Use this module with perldoc -M option
+
+    $ perldoc -MPod::Text::Color::Delight Foo::Bar # delight!!
+
+Also you can use this module with C<PERLDOC> environment variable
+
+    $ export PERLDOC="-MPod::Text::Color::Delight"
+    $ perldoc Foo::Bar # delight!!
 
 =head1 CONFIGURATION AND ENVIRONMENT
 
